@@ -1,0 +1,54 @@
+#include <msp430.h>
+unsigned int ADC_value=0;
+int avg_adc = 0;
+int adc[5];
+int p10=0, p11=0, p12=0, p13=0, p14=0, i=0;
+void Setup_HW();
+void Read_Acc();
+int main(void)
+{
+  Setup_HW();
+  while (1)
+  {
+      Read_Acc(); // This function reads the ADC and stores the pin values
+  }
+}
+
+// ADC10 interrupt service routine
+#pragma vector=ADC10_VECTOR
+__interrupt void ADC10_ISR(void)
+{
+  __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
+}
+
+void Setup_HW()
+{
+      WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+      ADC10CTL1 = INCH_7 + CONSEQ_1;            // A2/A1/A0, single sequence
+      ADC10CTL0 = ADC10SHT_2 + MSC + ADC10ON + ADC10IE;
+      ADC10DTC1 = 0x05;                         // 3 conversions
+      ADC10AE0 |= (BIT3 | BIT4 | BIT5 | BIT6 | BIT7);                         // Disable digital I/O on P1.0 to P1.2
+}
+void Read_Acc()
+{
+    i=0;p10=0;p11=0;p12=0;p13=0;p14=0;
+    for(i=1; i<=5 ; i++)
+    {
+    ADC10CTL0 &= ~ENC;
+    while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
+    ADC10SA = (unsigned)&adc[0];            // Copies data in ADC10SA to unsigned int adc array
+    ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion start
+    while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
+    p10 += adc[4];
+    p11 += adc[3];
+    p12 += adc[2];
+    p13 += adc[1];
+    p14 += adc[0];
+    }                        // adc array 2 copied to the variable
+    p10 = p10/5;
+    p11 = p11/5;
+    p12 = p12/5;
+    p13 = p13/5;
+    p14 = p14/5;
+   // __bis_SR_register(CPUOFF + GIE);        // LPM0, ADC10_ISR will force exit
+}
