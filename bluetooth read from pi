@@ -1,0 +1,21 @@
+import RPi.GPIO as GPIO
+import time
+import bluetooth
+
+bd_addr = "AB:35:E6:56:34:02"
+port = 1
+sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+sock.connect((bd_addr, port))
+
+data = ' '
+while 1:
+  try:
+    data = sock.recv(1024)
+    data_end = 0
+    if data_end != -1:
+      rec = data[:data_end]
+      print(data)
+      data = data[data_end + 1:]
+  except KeyboardInterrupt:
+    break
+sock.close()
