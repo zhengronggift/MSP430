@@ -1,0 +1,136 @@
+import RPi.GPIO as GPIO
+import time
+import bluetooth
+
+def receive():
+    data = ''
+    bd_addr = "AB:35:E6:56:34:02"
+    port = 1
+    sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+    sock.connect((bd_addr, port))
+    time.sleep(5)
+    data = sock.recv(1024) #1024 bytes data
+    sock.close()
+    print(data)
+    data = str(data)
+    return data
+
+def SetAngle(pin, angle):
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(pin, GPIO.OUT)
+    pwm = GPIO.PWM(pin, 50)
+    pwm.start(0)
+    duty = angle / 18 + 2
+    GPIO.output(pin, True)
+    pwm.ChangeDutyCycle(duty)
+    time.sleep(1)
+    GPIO.output(pin, False)
+    pwm.ChangeDutyCycle(0)
+
+def arm(data, flag):
+    #data_end = data.find('a') #k=60
+    if data == 'a'  and flag != 180:
+        SetAngle(17, 180) # pin and angle
+        print(data)
+        flag = 180
+
+    #data_end1 = data.find('b') #t=80
+    if data == 'b' and flag != 180:
+        SetAngle(17, 180) # pin and angle
+        flag=180
+
+    #data_end2 = data.find('c') #s=10
+    if data == 'c' and flag != 0:
+        SetAngle(17, 0)  # pin and angle
+        flag = 0
+    return flag
+
+def finger2(data, flag):
+    data_end = data.find('d') #k=60
+    if data == 'd' and flag != 180:
+        SetAngle(18, 180) # pin and angle
+        flag = 180
+
+    data_end1 = data.find('e') #t=80
+    if data == 'e' and flag != 180:
+        SetAngle(18, 180) # pin and angle
+        flag = 180
+
+    data_end2 = data.find('f') #s=10
+    if data == 'f' and flag != 0:
+        SetAngle(18, 0)  # pin and angle
+        flag = 0
+    return flag
+
+def finger3(data, flag):
+    data_end = data.find('g') #k=60
+    if data == 'g' and flag != 180:
+        SetAngle(27, 180) # pin and angle
+        flag = 180
+
+    data_end1 = data.find('h') #t=80
+    if data == 'h' and flag != 180:
+        SetAngle(27, 0) # pin and angle
+        flag = 0
+
+    data_end2 = data.find('i') #s=10
+    if data == 'i' and flag != 0:
+        SetAngle(27, 0)  # pin and angle
+        flag = 0
+    return flag
+
+def finger5(data, flag):
+    data_end = data.find('j') #k=60
+    if data_end == 'j' and flag != 180:
+        SetAngle(22, 180) # pin and angle
+        flag = 180
+
+    data_end1 = data.find('k') #t=80
+    if data == 'k' and flag != 180:
+        SetAngle(22, 180) # pin and angle
+        flag = 180
+
+    data_end2 = data.find('l') #s=10
+    if data == 'l' and flag != 0:
+        SetAngle(22, 0)  # pin and angle
+        flag = 0
+    return flag
+
+def finger4(data, flag):
+    data_end = data.find('m') #k=60
+    if data == 'm' and flag != 180:
+        SetAngle(23, 180) # pin and angle
+        flag = 180
+
+    data_end1 = data.find('n') #t=80
+    if data == 'n' and flag != 180:
+        SetAngle(23, 180) # pin and angle
+        flag = 180
+
+    data_end2 = data.find('o') #s=10
+    if data == 'o' and flag != 0:
+        SetAngle(23, 0)  # pin and angle
+        flag = 0
+    return flag
+
+bd_addr = "AB:35:E6:56:34:02"
+port = 1
+sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+sock.connect((bd_addr, port))
+flag = [0, 0, 0, 0, 0]
+data = ''
+while(1):
+    data = ''
+    data2 = ''
+    data2 = str(sock.recv(1))  # 1024 bytes data
+    data2 = data2[2:]
+    data2 = data2[:1]
+    data = data2
+    print(data)
+    flag[0] = arm(data, flag[0])
+    flag[1] = finger2(data, flag[1])
+    flag[2] = finger3(data, flag[2])
+    flag[3] = finger4(data, flag[3])
+    flag[4] = finger5(data, flag[4])
+
+sock.close()
