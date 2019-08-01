@@ -1,2 +1,2 @@
 # MSP430
-C code for Robotic Project
+C and python code for Robotic Project
